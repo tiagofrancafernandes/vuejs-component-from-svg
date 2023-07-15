@@ -16,8 +16,7 @@ class GeneratorRunner
         protected ?string $componentSufix = null,
         ?string $vueSvgIconComponentStubPath = null,
         protected array $replacers = [],
-    )
-    {
+    ) {
         $this->vueSvgIconComponentStubPath = $vueSvgIconComponentStubPath ?: __DIR__ . '/../../stubs/VueIconComponent.stub';
     }
 
@@ -45,10 +44,6 @@ class GeneratorRunner
     protected function getOutputDir(?string $outputDir = null): string
     {
         $outputDir ??= $this->outputDir;
-
-        if (!$outputDir || !is_dir($outputDir)) {
-            throw new \Exception('Invalid [outputDir] directory.', 1);
-        }
 
         return $outputDir;
     }
@@ -96,7 +91,7 @@ class GeneratorRunner
             return [];
         }
 
-        if (!is_dir($outputDir)) {
+        if (file_exists(($outputDir)) && !is_dir($outputDir)) {
             throw new \Exception("Invalid directory!\n[{$outputDir}] must be a directory.", 1);
         }
 
@@ -107,17 +102,7 @@ class GeneratorRunner
         $stubContent = $this->getStubContent();
 
         foreach ($finder as $file) {
-            $svg = new \DOMDocument();
-            $svg->load($file->getRealPath());
-            if ($this->initialClass) {
-                $svg->firstChild->setAttribute('class', $this->initialClass);
-            }
-
-            $svg->firstChild->setAttribute(':class', '`w-${computedSize} h-${computedSize}`');
-            // echo $updatedHtml . PHP_EOL;
-
             $svgFileName = pathinfo($file->getRealPath(), PATHINFO_FILENAME);
-
             $componentFileName =  str($svgFileName)
                 ->prepend(" {$this->componentPrefix} ")
                 ->append(" {$this->componentSufix} ")
@@ -126,23 +111,62 @@ class GeneratorRunner
 
             $componentFilePath = "{$outputDir}/{$componentFileName}.vue";
 
-            $componentReplacer = $this->replacers;
-            $componentReplacer['##SVG_CONTENT##'] = $svg->saveHTML();
+            try {
+                $svg = new \DOMDocument();
+                $svg->load($file->getRealPath());
 
-            $componentContent = str_replace(
-                array_keys($componentReplacer),
-                array_values($componentReplacer),
-                $stubContent
-            );
+                if ($svg->firstChild->nodeName !== 'svg') {
+                    $generatedFiles['errors'] = [
+                        'sourceSVG' => "{$svgFileName}.svg",
+                        'sourceSVGPath' => $file->getRealPath(),
+                        'error' => 'Invalid svg nodeName',
+                    ];
 
-            file_put_contents($componentFilePath, $componentContent);
+                    continue;
+                }
 
-            $generatedFiles[] = [
-                'sourceSVG' => "{$svgFileName}.svg",
-                'sourceSVGPath' => $file->getRealPath(),
-                'componentName' => $componentFileName,
-                'componentFilePath' => $componentFilePath
-            ];
+                if (!method_exists($svg->firstChild, 'setAttribute')) {
+                    $generatedFiles['errors'] = [
+                        'sourceSVG' => "{$svgFileName}.svg",
+                        'sourceSVGPath' => $file->getRealPath(),
+                        'error' => 'Has no setAttribute method',
+                    ];
+
+                    continue;
+                }
+
+                if ($this->initialClass) {
+                    $svg->firstChild->setAttribute('class', $this->initialClass);
+                }
+
+                $svg->firstChild->setAttribute(':class', '`w-${computedSize} h-${computedSize}`');
+
+                $componentReplacer = $this->replacers;
+                $componentReplacer['##SVG_CONTENT##'] = $svg->saveHTML();
+
+                $componentContent = str_replace(
+                    array_keys($componentReplacer),
+                    array_values($componentReplacer),
+                    $stubContent
+                );
+
+                file_put_contents($componentFilePath, $componentContent);
+
+                $generatedFiles['success'] = [
+                    'sourceSVG' => "{$svgFileName}.svg",
+                    'sourceSVGPath' => $file->getRealPath(),
+                    'componentName' => $componentFileName,
+                    'componentFilePath' => $componentFilePath
+                ];
+            } catch (\Throwable $th) {
+                $generatedFiles['errors'] = [
+                    'sourceSVG' => "{$svgFileName}.svg",
+                    'sourceSVGPath' => $file->getRealPath(),
+                    'error' => $th->getMessage(),
+                ];
+
+                // throw $th;
+            }
         }
 
         return $generatedFiles ?? [];
