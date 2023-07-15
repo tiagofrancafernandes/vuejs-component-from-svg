@@ -1,6 +1,8 @@
 # vuejs-component-from-svg
 > A package to easily generate Vue icon components from SVG files.
 
+* [**Packagist URL**](https://packagist.org/packages/tiago-f2/vuejs-component-from-svg)
+
 ```sh
 composer require tiago-f2/vuejs-component-from-svg
 ```
