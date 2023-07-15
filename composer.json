@@ -1,0 +1,37 @@
+{
+    "name": "tiago-f2/vuejs-component-from-svg",
+    "description": "A package to easily generate Vue icon components from SVG files.",
+    "keywords": [
+        "svg",
+        "builder",
+        "icon",
+        "vuejs"
+    ],
+    "homepage": "https://github.com/tiagofrancafernandes",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Tiago França",
+            "homepage": "https://tiagofranca.com"
+        }
+    ],
+    "require": {
+        "php": "^8.0",
+        "symfony/finder": "^5.4|^6.0",
+        "illuminate/support": "^9.0|^10.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^7.0|^8.0",
+        "phpunit/phpunit": "^9.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "TiagoF2\\VuejsComponentFromSvg\\": "src/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
