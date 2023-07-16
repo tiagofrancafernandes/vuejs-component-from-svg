@@ -22,10 +22,10 @@ const computedSize = computed(() => {
         return allowedSizes.default;
     }
 
-    if ((typeof props?.size === 'number')) {
+    if (!isNaN(parseInt(props?.size ?? null))) {
         let numVal = parseInt(props?.size ?? null);
 
-        if (isNaN(numVal) || numVal < 0 || numVal > 100) {
+        if (numVal < 0 || numVal > 100) {
             return allowedSizes.default;
         }
 

@@ -63,7 +63,6 @@ class GeneratorRunner
             throw new \Exception("File not exists!\n File [{$this->vueSvgIconComponentStubPath}] not exists.");
         }
 
-
         return file_get_contents($this->vueSvgIconComponentStubPath);
     }
 
